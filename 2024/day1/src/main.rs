@@ -1,6 +1,6 @@
 use std::fs;
 
-fn part1(mut first_col: Vec<i32>, mut second_col: Vec<i32>) {
+fn part1(first_col: &mut Vec<i32>, second_col: &mut Vec<i32>) {
     first_col.sort();
     second_col.sort();
 
@@ -45,6 +45,6 @@ fn main() {
         first_col.push(*num1);
         second_col.push(*num2);
     }
-    part1(first_col.clone(), second_col.clone());
+    part1(&mut first_col, &mut second_col);
     part2(first_col, second_col);
 }
