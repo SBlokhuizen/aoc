@@ -39,11 +39,8 @@ fn main() {
             .split_whitespace()
             .filter_map(|word| word.parse::<i32>().ok())
             .collect();
-        let [num1, num2] = numbers.as_slice() else {
-            todo! {}
-        };
-        first_col.push(*num1);
-        second_col.push(*num2);
+        first_col.push(numbers[0]);
+        second_col.push(numbers[1]);
     }
     part1(&mut first_col, &mut second_col);
     part2(first_col, second_col);
