@@ -28,7 +28,7 @@ fn part2(first_col: Vec<i32>, second_col: Vec<i32>) {
 }
 
 fn main() {
-    let file_name = "list.txt";
+    let file_name = "../input/day1.txt";
     let data = fs::read_to_string(file_name).expect("Unable to read file");
     let num_lines = data.lines().count();
     let mut first_col: Vec<i32> = Vec::with_capacity(num_lines);

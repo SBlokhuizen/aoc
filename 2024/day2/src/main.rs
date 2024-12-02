@@ -3,8 +3,7 @@ use std::fs;
 fn is_increasing(numbers: &Vec<i32>) -> bool {
     let mut prev_num = numbers[0] - 1;
     for number in numbers.iter() {
-        let abs_diff = (*number - prev_num).abs();
-        if *number <= prev_num || abs_diff > 3 {
+        if *number <= prev_num {
             return false;
         }
         prev_num = *number;
@@ -23,11 +22,11 @@ fn is_decreasing(numbers: &Vec<i32>) -> bool {
     true
 }
 
-fn is_diff_max(numbers: &Vec<i32>) -> bool {
+fn is_diff_max(numbers: &Vec<i32>, max_diff: i32) -> bool {
     let mut prev_num = numbers[0];
     for number in numbers.iter() {
         let abs_diff = (*number - prev_num).abs();
-        if abs_diff > 3 {
+        if abs_diff > max_diff {
             return false;
         }
         prev_num = *number;
@@ -36,7 +35,7 @@ fn is_diff_max(numbers: &Vec<i32>) -> bool {
 }
 
 fn is_safe(numbers: &Vec<i32>) -> bool {
-    is_diff_max(numbers) && (is_decreasing(numbers) || is_increasing(numbers))
+    is_diff_max(numbers, 3) && (is_decreasing(numbers) || is_increasing(numbers))
 }
 
 fn is_safe_p2(numbers: &Vec<i32>) -> bool {
@@ -55,7 +54,7 @@ fn is_safe_p2(numbers: &Vec<i32>) -> bool {
 }
 
 fn main() {
-    let file_name = "list.txt";
+    let file_name = "../input/day2.txt";
     let data = fs::read_to_string(file_name).expect("Unable to read file");
     let mut total_safe_p2 = 0;
     let mut total_safe_p1 = 0;
