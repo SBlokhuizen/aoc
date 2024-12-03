@@ -1,0 +1,50 @@
+use std::fs;
+
+fn handle_line(line: &str) -> i32 {
+    let mut window = String::from("");
+    let mut mult = 0;
+    for char in line.chars() {
+        //println!("window: {}", window);
+        match char {
+            'm' if window.is_empty() => window.push(char),
+            'u' if window == "m" => window.push(char),
+            'l' if window == "mu" => window.push(char),
+            '(' if window == "mul" => window.push(char),
+            ',' if window.starts_with("mul(") => window.push(char),
+            ')' if window.starts_with("mul(") && window.contains(",") => {
+                if let Some(comma_pos) = window.rfind(',') {
+                    let first_num: i32 = window[4..comma_pos].parse().expect("Not a valid number");
+
+                    let second_num: i32 =
+                        window[comma_pos + 1..].parse().expect("Not a valid number");
+
+                    mult += first_num * second_num;
+                }
+                window.clear();
+            }
+            _ => {
+                if char.is_numeric() {
+                    if window.starts_with("mul(") || window.ends_with(",") {
+                        window.push(char);
+                    } else {
+                        window.clear();
+                    }
+                } else {
+                    window.clear();
+                }
+            }
+        }
+    }
+    mult
+}
+
+fn main() {
+    let file_name = "../test_input/day3.txt";
+    let data = fs::read_to_string(file_name).expect("Unable to read file");
+    let mut mult = 0;
+    for line in data.lines() {
+        let curr_mult = handle_line(line);
+        mult += curr_mult;
+    }
+    println!("{mult}");
+}
