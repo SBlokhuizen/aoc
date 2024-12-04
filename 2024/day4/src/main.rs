@@ -105,36 +105,28 @@ fn part1(matrix: &Vec<Vec<char>>) -> i32 {
     total
 }
 
-fn check_mas(matrix: &Vec<Vec<char>>, i: usize, j: usize) -> bool {
-    if (matrix[i - 1][j - 1] == 'M'
-        && matrix[i + 1][j - 1] == 'M'
-        && matrix[i - 1][j + 1] == 'S'
-        && matrix[i + 1][j + 1] == 'S')
-        || (matrix[i - 1][j - 1] == 'M'
-            && matrix[i - 1][j + 1] == 'M'
-            && matrix[i + 1][j - 1] == 'S'
-            && matrix[i + 1][j + 1] == 'S')
-        || (matrix[i + 1][j + 1] == 'M'
-            && matrix[i + 1][j - 1] == 'M'
-            && matrix[i - 1][j + 1] == 'S'
-            && matrix[i - 1][j - 1] == 'S')
-        || (matrix[i + 1][j + 1] == 'M'
-            && matrix[i - 1][j + 1] == 'M'
-            && matrix[i + 1][j - 1] == 'S'
-            && matrix[i - 1][j - 1] == 'S')
-    {
-        return true;
-    }
-    false
+fn get_diagonals(matrix: &Vec<Vec<char>>, i: usize, j: usize) -> [char; 4] {
+    let diagonals = [
+        matrix[i - 1][j - 1],
+        matrix[i + 1][j - 1],
+        matrix[i + 1][j + 1],
+        matrix[i - 1][j + 1],
+    ];
+    diagonals
 }
 fn part2(matrix: &Vec<Vec<char>>) -> i32 {
     let grid_size = matrix.len();
     let mut total = 0;
-    for i in 0..grid_size {
-        for j in 0..grid_size {
-            if matrix[i][j] == 'A' && i > 0 && i < grid_size - 1 && j > 0 && j < grid_size - 1 {
-                if check_mas(matrix, i, j) {
-                    total += 1
+    for i in 1..grid_size - 1 {
+        for j in 1..grid_size - 1 {
+            if matrix[i][j] == 'A' {
+                let diagonals = get_diagonals(matrix, i, j);
+                if diagonals == ['M', 'M', 'S', 'S']
+                    || diagonals == ['S', 'M', 'M', 'S']
+                    || diagonals == ['S', 'S', 'M', 'M']
+                    || diagonals == ['M', 'S', 'S', 'M']
+                {
+                    total += 1;
                 }
             }
         }
