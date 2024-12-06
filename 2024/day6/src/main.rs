@@ -99,35 +99,32 @@ fn has_loop(grid: &mut Grid<char>) -> bool {
     has_loop
 }
 
-fn check_all_obstructions(grid: &mut Grid<char>) -> i32 {
+fn check_all_obstructions(grid: &mut Grid<char>, visited: HashSet<(usize, usize)>) -> i32 {
     let mut total_loops = 0;
-    let grid_size = grid.size().0;
     let start_pos = find_cursor(&grid);
 
-    for row in 0..grid_size {
-        for col in 0..grid_size {
-            //println!("{row},{col}");
-            if grid[(row, col)] == '.' {
-                grid[(row, col)] = '#'
-            } else {
-                continue;
-            }
+    for (row, col) in visited.iter() {
+        //println!("{row},{col}");
+        if grid[(*row, *col)] == '.' {
+            grid[(*row, *col)] = '#'
+        } else {
+            continue;
+        }
 
-            let has_loop = has_loop(grid);
-            let end_pos = find_cursor(&grid);
-            grid[start_pos] = '^';
-            grid[end_pos] = '.';
-            grid[(row, col)] = '.';
-            if has_loop {
-                //println!("loop");
-                total_loops += 1;
-            }
+        let has_loop = has_loop(grid);
+        let end_pos = find_cursor(&grid);
+        grid[start_pos] = '^';
+        grid[end_pos] = '.';
+        grid[(*row, *col)] = '.';
+        if has_loop {
+            //println!("loop");
+            total_loops += 1;
         }
     }
     total_loops
 }
 
-fn count_visited(mut grid: Grid<char>) -> usize {
+fn count_visited(mut grid: Grid<char>) -> HashSet<(usize, usize)> {
     let mut visited: HashSet<(usize, usize)> = HashSet::new();
     let mut cont = true;
     let mut cursor = find_cursor(&grid);
@@ -135,15 +132,15 @@ fn count_visited(mut grid: Grid<char>) -> usize {
         visited.insert(cursor);
         (cont, cursor) = advance(&mut grid, cursor);
     }
-    visited.len()
+    println!("{}", visited.len());
+    visited
 }
 fn main() {
     let file_name = "../input/day6.txt";
     let data = fs::read_to_string(file_name).expect("Unable to read file");
     let mut grid = fill_grid(data);
 
-    let num_visited = count_visited(grid.clone());
-    println!("{num_visited}");
-    let total_loops = check_all_obstructions(&mut grid);
+    let visited = count_visited(grid.clone());
+    let total_loops = check_all_obstructions(&mut grid, visited);
     println!("{total_loops}");
 }
