@@ -1,7 +1,5 @@
 use grid::*;
 use std::collections::HashSet;
-use std::thread;
-use std::time::Duration;
 use std::{char, fs};
 
 fn find_cursor(grid: &Grid<char>) -> (usize, usize) {
@@ -29,78 +27,123 @@ fn fill_grid(data: String) -> Grid<char> {
     grid
 }
 
-fn step(grid: &mut Grid<char>, visited: &mut HashSet<(usize, usize)>) -> bool {
-    let cursor = find_cursor(grid);
-    let new_cursor: (usize, usize);
+fn advance(grid: &mut Grid<char>, cursor: (usize, usize)) -> (bool, (usize, usize)) {
+    let mut new_cursor = cursor;
     let size = grid.size().0;
-    visited.insert(cursor);
     if grid[cursor] == '^' {
         if cursor.0 == 0 {
-            return false;
+            return (false, cursor);
         }
         new_cursor = (cursor.0 - 1, cursor.1);
         if grid[new_cursor] == '#' {
-            grid[cursor] = '>'
+            grid[cursor] = '>';
+            return (true, cursor);
         } else {
             grid[cursor] = '.';
             grid[new_cursor] = '^';
         }
     } else if grid[cursor] == '>' {
         if cursor.1 == size - 1 {
-            return false;
+            return (false, cursor);
         }
         new_cursor = (cursor.0, cursor.1 + 1);
         if grid[new_cursor] == '#' {
-            grid[cursor] = 'v'
+            grid[cursor] = 'v';
+            return (true, cursor);
         } else {
             grid[cursor] = '.';
             grid[new_cursor] = '>';
         }
     } else if grid[cursor] == 'v' {
         if cursor.0 == size - 1 {
-            return false;
+            return (false, cursor);
         }
         new_cursor = (cursor.0 + 1, cursor.1);
         if grid[new_cursor] == '#' {
-            grid[cursor] = '<'
+            grid[cursor] = '<';
+            return (true, cursor);
         } else {
             grid[cursor] = '.';
             grid[new_cursor] = 'v';
         }
     } else if grid[cursor] == '<' {
         if cursor.1 == 0 {
-            return false;
+            return (false, cursor);
         }
         new_cursor = (cursor.0, cursor.1 - 1);
         if grid[new_cursor] == '#' {
-            grid[cursor] = '^'
+            grid[cursor] = '^';
+            return (true, cursor);
         } else {
             grid[cursor] = '.';
             grid[new_cursor] = '<';
         }
+    } else {
+        println!("ERROR");
     }
-    //thread::sleep(Duration::from_millis(100)); // 100 milliseconds = 0.1 seconds
-    //print_grid(&grid);
-    true
+    (true, new_cursor)
 }
-fn print_grid(grid: &Grid<char>) {
-    for row in grid.iter_rows() {
-        for &ch in row {
-            print!("{}", ch); // Print each character
+
+fn has_loop(grid: &mut Grid<char>) -> bool {
+    let mut visited: HashSet<((usize, usize), char)> = HashSet::new();
+    let mut cont = true;
+    let mut has_loop = false;
+    let mut cursor = find_cursor(grid);
+    while cont == true && has_loop == false {
+        if visited.contains(&(cursor, grid[cursor])) {
+            has_loop = true;
         }
-        println!(); // Newline after each row
+        visited.insert((cursor, grid[cursor]));
+        (cont, cursor) = advance(grid, cursor);
     }
-    println!(); // Newline after each row
+    has_loop
+}
+
+fn check_all_obstructions(grid: &mut Grid<char>) -> i32 {
+    let mut total_loops = 0;
+    let grid_size = grid.size().0;
+    let start_pos = find_cursor(&grid);
+
+    for row in 0..grid_size {
+        for col in 0..grid_size {
+            //println!("{row},{col}");
+            if grid[(row, col)] == '.' {
+                grid[(row, col)] = '#'
+            } else {
+                continue;
+            }
+
+            let has_loop = has_loop(grid);
+            let end_pos = find_cursor(&grid);
+            grid[start_pos] = '^';
+            grid[end_pos] = '.';
+            grid[(row, col)] = '.';
+            if has_loop {
+                //println!("loop");
+                total_loops += 1;
+            }
+        }
+    }
+    total_loops
+}
+
+fn count_visited(mut grid: Grid<char>) -> usize {
+    let mut visited: HashSet<(usize, usize)> = HashSet::new();
+    let mut cont = true;
+    let mut cursor = find_cursor(&grid);
+    while cont == true {
+        visited.insert(cursor);
+        (cont, cursor) = advance(&mut grid, cursor);
+    }
+    visited.len()
 }
 fn main() {
     let file_name = "../input/day6.txt";
     let data = fs::read_to_string(file_name).expect("Unable to read file");
     let mut grid = fill_grid(data);
-    let mut visited: HashSet<(usize, usize)> = HashSet::new();
-    let mut cont = true;
-    while cont == true {
-        cont = step(&mut grid, &mut visited);
-    }
 
-    println!("{}", visited.len());
+    let num_visited = count_visited(grid.clone());
+    println!("{num_visited}");
+    let total_loops = check_all_obstructions(&mut grid);
+    println!("{total_loops}");
 }
