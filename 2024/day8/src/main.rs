@@ -15,69 +15,84 @@ fn fill_grid(data: String) -> Grid<char> {
     grid
 }
 
-fn find_antennas(grid: &Grid<char>) -> HashMap<char, Vec<(usize, usize)>> {
+fn find_antennas(grid: &Grid<char>) -> HashMap<char, Vec<(i32, i32)>> {
     let grid_size = grid.size().0;
-    let mut antennas: HashMap<char, Vec<(usize, usize)>> = HashMap::new();
+    let mut antennas: HashMap<char, Vec<(i32, i32)>> = HashMap::new();
     for i in 0..grid_size {
         for j in 0..grid_size {
             if grid[(i, j)] != '.' {
                 antennas
                     .entry(grid[(i, j)])
                     .or_insert_with(Vec::new)
-                    .push((i, j));
+                    .push((i.try_into().unwrap(), j.try_into().unwrap()))
             }
         }
     }
     antennas
 }
 
-fn is_valid_antinode(antinode: (i32, i32), grid: &Grid<char>) -> bool {
-    let grid_size = grid.size().0 as i32;
+fn is_valid_antinode(antinode: (i32, i32), grid_size: usize) -> bool {
+    let grid_size = grid_size as i32;
     antinode.0 >= 0 && antinode.1 >= 0 && antinode.0 < grid_size && antinode.1 < grid_size
-    //&& grid[(antinode.0 as usize, antinode.1 as usize)] == '.'
 }
 
-fn part1(grid: &Grid<char>) {
+fn create_antinode(pos: (i32, i32), diff: (i32, i32), is_pos: bool) -> (i32, i32) {
+    let antinode: (i32, i32);
+    if is_pos {
+        antinode = (pos.0 + diff.0, pos.1 + diff.1);
+    } else {
+        antinode = (pos.0 - diff.0, pos.1 - diff.1);
+    }
+    antinode
+}
+
+fn solve(grid: &Grid<char>, is_p2: bool) {
     let antennas = find_antennas(grid);
     let mut antinodes: HashSet<(i32, i32)> = Default::default();
+    let grid_size = grid.size().0;
     for antenna in antennas.iter() {
-        let antenna_type = antenna.0;
-        let pos = antenna.1;
-        println!("{antenna_type}");
-        for i in 0..pos.len() {
-            for j in i + 1..pos.len() {
+        let pos_antenna = antenna.1;
+        for i in 0..pos_antenna.len() {
+            for j in i + 1..pos_antenna.len() {
                 if i != j {
-                    let diff: (i32, i32) = (
-                        pos[i].0 as i32 - pos[j].0 as i32,
-                        pos[i].1 as i32 - pos[j].1 as i32,
+                    let diff = (
+                        pos_antenna[i].0 - pos_antenna[j].0,
+                        pos_antenna[i].1 - pos_antenna[j].1,
                     );
-                    let antinode0: (i32, i32) =
-                        (pos[i].0 as i32 + diff.0, pos[i].1 as i32 + diff.1);
-                    let antinode1: (i32, i32) =
-                        (pos[j].0 as i32 - diff.0, pos[j].1 as i32 - diff.1);
 
-                    if is_valid_antinode(antinode0, grid) {
-                        antinodes.insert(antinode0);
-                    }
-                    if is_valid_antinode(antinode1, grid) {
-                        antinodes.insert(antinode1);
-                    }
+                    if is_p2 {
+                        let mut pos_antinode = pos_antenna[i];
+                        while is_valid_antinode(pos_antinode, grid_size) {
+                            antinodes.insert(pos_antinode);
+                            pos_antinode = create_antinode(pos_antinode, diff, true);
+                        }
 
-                    println!(
-                        "{:?} {:?} -> {:?} {:?}",
-                        pos[i], pos[j], antinode0, antinode1
-                    );
+                        let mut neg_antinode = pos_antenna[j];
+                        while is_valid_antinode(neg_antinode, grid_size) {
+                            antinodes.insert(neg_antinode);
+                            neg_antinode = create_antinode(neg_antinode, diff, false);
+                        }
+                    } else {
+                        let pos_antinode = create_antinode(pos_antenna[i], diff, true);
+                        if is_valid_antinode(pos_antinode, grid_size) {
+                            antinodes.insert(pos_antinode);
+                        }
+                        let neg_antinode = create_antinode(pos_antenna[j], diff, false);
+                        if is_valid_antinode(neg_antinode, grid_size) {
+                            antinodes.insert(neg_antinode);
+                        }
+                    }
                 }
             }
         }
     }
-
-    println!("{:?} len={}", antinodes, antinodes.len());
+    println!("{}", antinodes.len());
 }
 
 fn main() {
     let file_name = "../input/day8.txt";
     let data = fs::read_to_string(file_name).expect("Unable to read file");
     let grid = fill_grid(data);
-    part1(&grid);
+    solve(&grid, false);
+    solve(&grid, true);
 }
