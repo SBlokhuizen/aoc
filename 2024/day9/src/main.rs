@@ -47,9 +47,7 @@ fn check_sizes(expansion: &mut Vec<String>, front_ptr: usize, back_ptr: usize) -
     while expansion[back_ptr - len_back] == expansion[back_ptr] {
         len_back += 1;
         if back_ptr - len_back == 0 {
-            let checksum = calc_checksum(expansion);
-            println!("{checksum}");
-            std::process::exit(0);
+            return (len_front as i32, len_back as i32, false);
         }
     }
     while expansion[front_ptr + len_front] == expansion[front_ptr] {
@@ -75,6 +73,9 @@ fn compress2(expansion: &mut Vec<String>) {
         let diff = len_front - len_back;
 
         if success == false {
+            if back_ptr - len_back as usize == 0 {
+                return;
+            }
             front_ptr = 0;
             back_ptr -= len_back as usize;
             continue;
@@ -110,21 +111,20 @@ fn calc_checksum(expansion: &mut Vec<String>) -> u64 {
     checksum
 }
 
-fn part1(data: &String) {
+fn solve(data: &String, is_p2: bool) {
     let mut expansion = expand(data);
-    compress(&mut expansion);
+    if is_p2 {
+        compress2(&mut expansion);
+    } else {
+        compress(&mut expansion);
+    }
     let checksum = calc_checksum(&mut expansion);
     println!("{}", checksum);
-}
-
-fn part2(data: &String) {
-    let mut expansion = expand(data);
-    compress2(&mut expansion);
 }
 
 fn main() {
     let file_name = "../input/day9.txt";
     let data = fs::read_to_string(file_name).expect("Unable to read file");
-    part1(&data);
-    part2(&data);
+    solve(&data, false);
+    solve(&data, true);
 }
