@@ -13,24 +13,33 @@ fn fill_grid(data: String) -> Grid<u32> {
     grid
 }
 
-fn part1(grid: &Grid<u32>) {
+fn solve(grid: &Grid<u32>, is_p2: bool) {
     let trailheads = find_trailheads(grid);
-    let mut peaks: HashSet<(usize, usize)> = Default::default();
+    let mut peaks: Vec<(usize, usize)> = Default::default();
+    let mut peaks_uniq: HashSet<(usize, usize)> = Default::default();
     let mut total: usize = 0;
 
     for trailhead in trailheads {
-        peaks.clear();
         follow_trail(grid, trailhead, &mut peaks);
-        total += peaks.len();
+        if !is_p2 {
+            for peak in &peaks {
+                peaks_uniq.insert(*peak);
+            }
+            total += peaks_uniq.len();
+            peaks_uniq.clear();
+        } else {
+            total += peaks.len();
+        }
+        peaks.clear();
     }
     println!("{}", total);
 }
-fn follow_trail(grid: &Grid<u32>, trailhead: (usize, usize), peaks: &mut HashSet<(usize, usize)>) {
+fn follow_trail(grid: &Grid<u32>, trailhead: (usize, usize), peaks: &mut Vec<(usize, usize)>) {
     let (row, col) = trailhead;
     let height = grid[trailhead];
 
     if height == 9 {
-        peaks.insert(trailhead);
+        peaks.push(trailhead);
         return;
     }
 
@@ -71,5 +80,6 @@ fn main() {
     let file_name = "../input/day10.txt";
     let data = fs::read_to_string(file_name).expect("Unable to read file");
     let grid = fill_grid(data);
-    part1(&grid);
+    solve(&grid, false);
+    solve(&grid, true);
 }
