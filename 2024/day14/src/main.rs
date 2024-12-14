@@ -1,4 +1,6 @@
 use std::fs;
+use std::thread;
+use std::time::Duration;
 
 static WIDTH: i32 = 101;
 static HEIGHT: i32 = 103;
@@ -45,6 +47,21 @@ fn wait_a_sec(robots: &mut Vec<Robot>) {
     }
 }
 
+fn print_robots(robots: &Vec<Robot>) {
+    let mut grid = vec![vec!['.'; WIDTH as usize]; HEIGHT as usize];
+    for robot in robots {
+        let (x, y) = robot.position;
+        if x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT {
+            grid[y as usize][x as usize] = '#';
+        }
+    }
+
+    for row in grid {
+        println!("{}", row.iter().collect::<String>());
+    }
+    thread::sleep(Duration::from_millis(50));
+}
+
 fn count_robots(robots: &Vec<Robot>) {
     let mut quandrants = [0, 0, 0, 0];
     for robot in robots {
@@ -64,6 +81,7 @@ fn count_robots(robots: &Vec<Robot>) {
     }
     println!("{safety_factor}");
 }
+
 fn part1(robots: &mut Vec<Robot>) {
     for _ in 0..100 {
         wait_a_sec(robots);
@@ -71,9 +89,20 @@ fn part1(robots: &mut Vec<Robot>) {
     count_robots(robots);
 }
 
+fn part2(robots: &mut Vec<Robot>) {
+    for i in 1..10000 {
+        println!("{i}");
+
+        wait_a_sec(robots);
+        print_robots(robots);
+    }
+}
+
 fn main() {
     let file_name = "../input/day14.txt";
     let data = fs::read_to_string(file_name).expect("Unable to read file");
     let mut robots = fill_robots(&data);
     part1(&mut robots);
+    thread::sleep(Duration::from_secs(1));
+    part2(&mut robots);
 }
